@@ -78,7 +78,7 @@ class RecommendationService:
                 "GoogleAdsService", version="v24"
             )
 
-            # Build query -- only select fields valid in v20 GAQL
+            # Build query -- only select fields valid in GAQL
             query = """
                 SELECT
                     recommendation.type,

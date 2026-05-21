@@ -395,9 +395,9 @@ class UserDataService:
             request = UploadUserDataRequest()
             request.customer_id = customer_id
             request.operations = operations
-
-            # Note: StoreSalesMetadata is not supported as a separate field in v20 API
-            # Store sales data is handled through transaction attributes with store_code
+            # In v24, store sales uploads are recognized dynamically by defining transaction attributes (specifically setting
+            # store_attribute.store_code) on individual user data operations, rather than configuring a standalone
+            # StoreSalesMetadata block inside the request.
 
             # Make the API call
             response: UploadUserDataResponse = self.client.upload_user_data(

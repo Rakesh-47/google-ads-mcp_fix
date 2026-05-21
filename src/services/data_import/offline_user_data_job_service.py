@@ -197,9 +197,8 @@ class OfflineUserDataJobService:
                     user_data.transaction_attribute.transaction_date_time = (
                         trans_attr.get("transaction_date_time")
                     )
-
-                # Note: OfflineUserData not available in v20 - simplified implementation
-                # operation.create = user_data  # Simplified approach
+                # In v24, OfflineUserDataJob operations are represented by UserData resources (operation.create)
+                # containing user identifiers and transaction attributes, packaged in AddOfflineUserDataJobOperationsRequest.
                 operation.create = user_data
                 operations.append(operation)
 

@@ -5,12 +5,12 @@ This document tracks the implementation progress of all Google Ads API v24 servi
 Goal: 1:1 mapping of ALL Google Ads services with full type safety using generated protobuf types.
 
 ## Progress Summary
-- Total Services: 103 (from google-ads-python v20)
+- Total Services: 103 (from google-ads-python v24)
 - ✅ Implemented: 90 (87.4%)
 - ❌ Not Implemented: 13 (12.6%)
 
 **Last Audit Date:** 2026-03-22
-**Audit Method:** Complete analysis of google-ads-python v20 services directory and cross-referenced with implementations
+**Audit Method:** Complete analysis of google-ads-python v24 services directory and cross-referenced with implementations
 **Latest Implementation:** Campaign service refactored for PMax/Search/Display/Shopping/Video with full bidding strategy support. Extension assets (sitelink, callout, structured snippet, call) added to asset service. MaximizeConversionValue bidding strategy added.
 
 ## Type Safety Verification
@@ -56,7 +56,7 @@ Goal: 1:1 mapping of ALL Google Ads services with full type safety using generat
 1. ✅ `asset` - Asset management
 2. ✅ `asset_group` - Asset group management (Performance Max)
 3. ✅ `asset_group_asset` - Assets within asset groups
-4. ❌ `asset_group_listing_group_filter` - Not available in v20 SDK
+4. ❌ `asset_group_listing_group_filter` - Not available in v24 SDK
 5. ✅ `asset_group_signal` - Audience signals for asset groups (NEWLY IMPLEMENTED)
 6. ✅ `asset_set` - Asset set management
 7. ❌ `asset_set_asset` - Assets within asset sets
@@ -81,7 +81,7 @@ Goal: 1:1 mapping of ALL Google Ads services with full type safety using generat
 2. ✅ `bidding_seasonality_adjustment` - Seasonal bid adjustments (NEWLY IMPLEMENTED)
 3. ✅ `bidding_strategy` - Bidding strategies
 4. ✅ `budget` (campaign_budget in our impl) - Campaign budget management
-5. ❌ `campaign_budget` - Separate campaign budget service (v20 has both)
+5. ❌ `campaign_budget` - Separate campaign budget service (v24 has both)
 
 ### Campaigns (17 services)
 1. ✅ `campaign` - Campaign management
@@ -233,9 +233,9 @@ Services missing some operations:
 ## Notes for Contributors
 
 When implementing a new service:
-1. Check the v20 service types in google-ads-python
+1. Check the v24 service types in google-ads-python
 2. Implement ALL operations for 1:1 API coverage
-3. Use full type annotations with v20 types
+3. Use full type annotations with v24 types
 4. Write comprehensive tests
 5. Update this tracker immediately
 6. Run `uv run ruff format .` and `uv run pyright`

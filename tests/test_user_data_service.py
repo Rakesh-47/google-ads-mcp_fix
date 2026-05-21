@@ -305,9 +305,8 @@ async def test_upload_store_sales_data(
     request = call_args[1]["request"]
     assert request.customer_id == customer_id
     assert len(request.operations) == 2
-
-    # Note: store_sales_metadata is not available in v20 API
-    # Store sales are identified by store_code in transaction_attribute
+    # Note: In the v24 API, store sales uploads do not require a separate StoreSalesMetadata
+    # block in the request; they are dynamically recognized via the transaction_attribute.store_code.
 
     # Check first operation
     op1 = request.operations[0]

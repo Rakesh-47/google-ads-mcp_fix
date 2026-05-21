@@ -167,8 +167,7 @@ class AudienceInsightsService:
             request.baseline_audience = baseline_audience
             request.specific_audience = specific_audience
 
-            # Note: In v20, GenerateInsightsFinderReportRequest doesn't have dimensions field
-            # The dimensions parameter is kept for API compatibility but not used
+            # Note: The dimensions parameter is kept for API compatibility but not currently used in report generation
 
             # Make the API call
             response: GenerateInsightsFinderReportResponse = (
@@ -246,8 +245,7 @@ class AudienceInsightsService:
                 )
                 audience.gender = gender_info
 
-            # Note: In v20, user interests should be provided through topic_audience_combinations
-            # For simplicity, we skip user interests handling in this implementation
+            # Note: For simplicity, we skip user interests handling in this implementation
 
             # Add attribute groups if provided
             if audience_attribute_groups:
@@ -345,8 +343,7 @@ class AudienceInsightsService:
                 )
                 audience.gender = gender_info
 
-            # Note: In v20, user interests should be provided through topic_audience_combinations
-            # For simplicity, we skip user interests handling in this implementation
+            # Note: For simplicity, we skip user interests handling in this implementation
 
             # Create audience definition
             audience_definition = InsightsAudienceDefinition()

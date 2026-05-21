@@ -148,7 +148,8 @@ class CustomerUserAccessService:
                     customer_user_access.email_address,
                     customer_user_access.access_role,
                     customer_user_access.access_creation_date_time,
-                    customer_user_access.inviter_user_email_address
+                    customer_user_access.inviter_user_email_address,
+                    customer_user_access.passkey_enabled
                 FROM customer_user_access
                 ORDER BY customer_user_access.email_address
             """

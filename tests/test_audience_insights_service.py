@@ -126,8 +126,7 @@ async def test_generate_insights_finder_report(
         attr_group.attributes[0].user_interest.user_interest_category
         == "customers/1234567890/userInterests/12345"
     )
-
-    # Note: In v20, GenerateInsightsFinderReportRequest doesn't have dimensions field
+    # Note: In the v24 API, GenerateInsightsFinderReportRequest natively supports the dimensions field to slice the reports.
 
     # Verify logging
     mock_ctx.log.assert_called_once_with(  # type: ignore
@@ -195,7 +194,7 @@ async def test_generate_insights_finder_report_minimal(
     # For proto-plus, checking if the field is set is complex, so we skip this check
     assert len(specific_audience.topic_audience_combinations) == 0
 
-    # Note: In v20, GenerateInsightsFinderReportRequest doesn't have dimensions field
+    # Note: In the v24 API, GenerateInsightsFinderReportRequest natively supports the dimensions field to slice the reports.
 
 
 @pytest.mark.asyncio
@@ -277,7 +276,7 @@ async def test_generate_audience_composition_insights(
     assert len(request.audience.age_ranges) == 2
     # InsightsAudience only has a single gender field
     assert request.audience.gender.type_ == GenderTypeEnum.GenderType.MALE
-    # Note: In v20, user interests are handled through topic_audience_combinations
+    # Note: In the v24 API, user interests in InsightsAudience are structured under topic_audience_combinations to support advanced topic and audience intersections.
 
     # Verify dimensions
     assert len(request.dimensions) == 4
@@ -425,7 +424,7 @@ async def test_generate_suggested_targeting_insights(
     assert len(audience.age_ranges) == 2
     # InsightsAudience only has a single gender field
     assert audience.gender.type_ == GenderTypeEnum.GenderType.FEMALE
-    # Note: In v20, user interests are handled through topic_audience_combinations
+    # Note: In the v24 API, user interests in InsightsAudience are structured under topic_audience_combinations to support advanced topic and audience intersections.
 
     # Verify logging
     mock_ctx.log.assert_called_once_with(  # type: ignore
@@ -484,7 +483,7 @@ async def test_generate_suggested_targeting_insights_minimal(
     assert len(audience.age_ranges) == 0
     # InsightsAudience gender should be unset for minimal parameters
     # For proto-plus, checking if the field is set is complex, so we skip this check
-    # Note: In v20, user interests are handled through topic_audience_combinations
+    # Note: In the v24 API, user interests in InsightsAudience are structured under topic_audience_combinations to support advanced topic and audience intersections.
 
 
 @pytest.mark.asyncio

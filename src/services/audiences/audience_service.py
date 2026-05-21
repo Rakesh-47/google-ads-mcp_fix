@@ -104,7 +104,7 @@ class AudienceService:
                 audience.dimensions.append(dimension)
 
             # Add exclusion dimension if provided
-            # Note: In v20, only one exclusion dimension is supported
+            # Note: Standard exclusions implementation
             if exclusion_dimensions and len(exclusion_dimensions) > 0:
                 exclusion = self._create_audience_exclusion_dimension(
                     exclusion_dimensions[0]
@@ -314,7 +314,7 @@ class AudienceService:
     ) -> AudienceExclusionDimension:
         """Create an audience exclusion dimension from configuration.
 
-        Note: In v20, exclusions only support audience segments (user lists).
+        Note: Exclusions only support audience segments (user lists).
         """
         exclusion = AudienceExclusionDimension()
 
@@ -329,8 +329,8 @@ class AudienceService:
             exclusion_segment.user_list = user_list_segment
             exclusion.exclusions.append(exclusion_segment)
         else:
-            # Other dimension types are not supported for exclusions in v20
-            logger.warning(f"Exclusion type {dimension_type} is not supported in v20")
+            # Other dimension types are not supported for exclusions
+            logger.warning(f"Exclusion type {dimension_type} is not supported")
 
         return exclusion
 

@@ -11,7 +11,7 @@
 Built by [**Promobase**](https://openpromo.app) for [**OpenPromo**](https://openpromo.app), the AI-native workspace for creating, publishing, and managing ads.
 
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB.svg)](https://www.python.org/)
-[![Google Ads API](https://img.shields.io/badge/Google%20Ads%20API-v20-4285F4.svg)](https://developers.google.com/google-ads/api/docs/start)
+[![Google Ads API](https://img.shields.io/badge/Google%20Ads%20API-v24-4285F4.svg)](https://developers.google.com/google-ads/api/docs/start)
 [![FastMCP](https://img.shields.io/badge/MCP-FastMCP-111827.svg)](https://github.com/jlowin/fastmcp)
 [![CI](https://github.com/promobase/google-ads-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/promobase/google-ads-mcp/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
@@ -44,7 +44,7 @@ Current tracker status:
 
 | Area | Status |
 |------|--------|
-| Google Ads API version | `v20` |
+| Google Ads API version | `v24` |
 | Implemented services | `90 / 103` |
 | Coverage model | 1:1 service mapping where implemented |
 | Type policy | Generated Google Ads protobuf types |

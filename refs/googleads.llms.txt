@@ -3,4 +3,4 @@ This page has tons of links to different resources/enums, services, errors of go
 
 The google ads python sdk is generated from this protocol buffer schemas.
 
-[Overview with all resources, services, enums, etc.] https://developers.google.com/google-ads/api/reference/rpc/v20/overview
+[Overview with all resources, services, enums, etc.] https://developers.google.com/google-ads/api/reference/rpc/v24/overview

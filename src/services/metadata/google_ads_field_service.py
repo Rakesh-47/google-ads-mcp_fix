@@ -23,6 +23,10 @@ from src.utils import (
     get_logger,
     serialize_proto_message,
 )
+from src.services.metadata.gaql_validation import (
+    validate_gaql_query_with_metadata,
+    auto_correct_gaql_query_logic,
+)
 
 logger = get_logger(__name__)
 
@@ -271,6 +275,64 @@ class GoogleAdsFieldService:
             await ctx.log(level="error", message=error_msg)
             raise Exception(error_msg) from e
 
+    async def validate_gaql_query(
+        self,
+        ctx: Context,
+        query: str,
+    ) -> Dict[str, Any]:
+        """Validate a GAQL query against v24 rules and schema field attributes.
+
+        Args:
+            ctx: FastMCP context
+            query: The GAQL query to validate
+
+        Returns:
+            Dictionary with validation status and list of issues/warnings.
+        """
+        try:
+            async def metadata_provider(field_name: str) -> Dict[str, Any]:
+                try:
+                    return await self.get_field_metadata(ctx, field_name)
+                except Exception:
+                    return {}
+
+            result = await validate_gaql_query_with_metadata(query, metadata_provider)
+            await ctx.log(
+                level="info",
+                message=f"GAQL query validation completed. Valid: {result['valid']}",
+            )
+            return result
+        except Exception as e:
+            error_msg = f"Failed to validate GAQL query: {str(e)}"
+            await ctx.log(level="error", message=error_msg)
+            raise Exception(error_msg) from e
+
+    async def auto_correct_gaql_query(
+        self,
+        ctx: Context,
+        query: str,
+    ) -> Dict[str, Any]:
+        """Automatically correct a GAQL query to make it v24-compliant.
+
+        Args:
+            ctx: FastMCP context
+            query: The GAQL query to correct
+
+        Returns:
+            Dictionary containing the corrected query and list of changes made.
+        """
+        try:
+            result = auto_correct_gaql_query_logic(query)
+            await ctx.log(
+                level="info",
+                message=f"GAQL query auto-corrected. Changes made: {len(result['changes_made'])}",
+            )
+            return result
+        except Exception as e:
+            error_msg = f"Failed to auto-correct GAQL query: {str(e)}"
+            await ctx.log(level="error", message=error_msg)
+            raise Exception(error_msg) from e
+
 
 def create_google_ads_field_tools(
     service: GoogleAdsFieldService,
@@ -391,8 +453,45 @@ def create_google_ads_field_tools(
             field_names=field_names,
         )
 
+    async def validate_gaql_query(
+        ctx: Context,
+        query: str,
+    ) -> Dict[str, Any]:
+        """Validate a GAQL query against Google Ads v24 validation and schema metadata rules.
+
+        Args:
+            query: The GAQL query to validate
+
+        Returns:
+            A validation report listing any rules violated, deprecated fields,
+            and resource metadata issues.
+        """
+        return await service.validate_gaql_query(ctx=ctx, query=query)
+
+    async def auto_correct_gaql_query(
+        ctx: Context,
+        query: str,
+    ) -> Dict[str, Any]:
+        """Automatically clean and correct a GAQL query to make it v24-compliant.
+
+        Args:
+            query: The raw GAQL query to correct
+
+        Returns:
+            A correction report containing the original query, the new corrected
+            query, and list of changes made.
+        """
+        return await service.auto_correct_gaql_query(ctx=ctx, query=query)
+
     tools.extend(
-        [get_field_metadata, search_fields, get_resource_fields, validate_query_fields]
+        [
+            get_field_metadata,
+            search_fields,
+            get_resource_fields,
+            validate_query_fields,
+            validate_gaql_query,
+            auto_correct_gaql_query,
+        ]
     )
     return tools
 

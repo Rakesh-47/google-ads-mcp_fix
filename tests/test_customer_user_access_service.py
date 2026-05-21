@@ -184,6 +184,7 @@ async def test_list_user_access(
             f"2024-01-{i + 1:02d} 10:00:00"
         )
         row.customer_user_access.inviter_user_email_address = "admin@example.com"
+        row.customer_user_access.passkey_enabled = (i % 2 == 0)
         mock_results.append(row)
 
     mock_google_ads_service.search.return_value = mock_results  # type: ignore
@@ -205,6 +206,7 @@ async def test_list_user_access(
             "access_role": obj.access_role.name,
             "access_creation_date_time": obj.access_creation_date_time,
             "inviter_user_email_address": obj.inviter_user_email_address,
+            "passkey_enabled": obj.passkey_enabled,
         }
 
     with (
@@ -232,14 +234,17 @@ async def test_list_user_access(
     assert first_result["email_address"] == "user0@example.com"
     assert first_result["access_role"] == "ADMIN"
     assert first_result["inviter_user_email_address"] == "admin@example.com"
+    assert first_result["passkey_enabled"] is True
 
     # Check second result (standard)
     second_result = result[1]
     assert second_result["access_role"] == "STANDARD"
+    assert second_result["passkey_enabled"] is False
 
     # Check third result (read-only)
     third_result = result[2]
     assert third_result["access_role"] == "READ_ONLY"
+    assert third_result["passkey_enabled"] is True
 
     # Verify the search call
     mock_google_ads_service.search.assert_called_once()  # type: ignore

@@ -335,7 +335,7 @@ def test_register_google_ads_field_tools() -> None:
     assert isinstance(service, GoogleAdsFieldService)
 
     # Verify that tools were registered
-    assert mock_mcp.tool.call_count == 4  # 4 tools registered  # type: ignore
+    assert mock_mcp.tool.call_count == 6  # 6 tools registered  # type: ignore
 
     # Verify tool functions were passed
     registered_tools = [call[0][0] for call in mock_mcp.tool.call_args_list]  # type: ignore
@@ -346,6 +346,8 @@ def test_register_google_ads_field_tools() -> None:
         "search_fields",
         "get_resource_fields",
         "validate_query_fields",
+        "validate_gaql_query",
+        "auto_correct_gaql_query",
     ]
 
     assert set(tool_names) == set(expected_tools)

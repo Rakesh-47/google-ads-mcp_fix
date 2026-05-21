@@ -99,12 +99,20 @@ class ReachPlanService:
                 self.client.list_plannable_products(request=request)
             )
 
-            # Process results
             products = []
             for product in response.product_metadata:
                 product_dict = {
                     "plannable_product_code": product.plannable_product_code,
                     "plannable_product_name": product.plannable_product_name,
+                    "plannable_product_description": getattr(
+                        product, "plannable_product_description", ""
+                    ),
+                    "plannable_product_core_attributes": serialize_proto_message(
+                        product.plannable_product_core_attributes
+                    )
+                    if hasattr(product, "plannable_product_core_attributes")
+                    and product.plannable_product_core_attributes
+                    else {},
                     "plannable_targeting": {
                         "age_ranges": [
                             str(age_range)
@@ -162,7 +170,13 @@ class ReachPlanService:
         currency_code: str,
         budget_micros: int,
     ) -> Dict[str, Any]:
-        """Generate a basic reach forecast (simplified version due to v20 limitations).
+        """Generate a basic reach forecast (simplified placeholder wrapper).
+
+        Note: Generating reach forecasts under the Google Ads API v24 requires deeply structured configurations
+        (e.g., GenerateReachForecastRequest requires configuring planned_products, campaign_profiles, and
+        extensive targeting dimensions like user_interest_targeting, device_targeting, and location_targeting).
+        This tool outlines the required parameters for basic reach estimation, while comprehensive forecast
+        building requires composing the nested structures directly.
 
         Args:
             ctx: FastMCP context
@@ -172,13 +186,14 @@ class ReachPlanService:
             budget_micros: Budget in micros
 
         Returns:
-            Basic reach forecast information
+            Basic reach forecast information (simplified placeholder)
         """
         try:
             customer_id = format_customer_id(customer_id)
 
-            # Note: GenerateReachForecastRequest requires complex types not available in v20
-            # This is a simplified implementation that returns basic information
+            # Note: Complete GenerateReachForecastRequest in v24 requires setting up campaign profiles, product mixes,
+            # and multiple targeting dimensions (devices, locations, demographics).
+            # This is a simplified placeholder implementation that highlights the core parameter requirements.
             raise NotImplementedError
 
         except GoogleAdsException as e:
@@ -235,7 +250,7 @@ def create_reach_plan_tools(
         currency_code: str,
         budget_micros: int,
     ) -> Dict[str, Any]:
-        """Generate a basic reach forecast (simplified due to v20 limitations).
+        """Generate a basic reach forecast (simplified).
 
         Args:
             customer_id: The customer ID (can be with or without hyphens)
@@ -244,7 +259,7 @@ def create_reach_plan_tools(
             budget_micros: Budget in micros (e.g., 1000000 for $1)
 
         Returns:
-            Basic reach forecast information (simplified due to API limitations)
+            Basic reach forecast information (simplified)
         """
         return await service.generate_basic_reach_forecast(
             ctx=ctx,

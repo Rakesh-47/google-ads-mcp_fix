@@ -249,7 +249,7 @@ class TestCampaignConversionGoalTools:
         with patch.object(service, "update_campaign_conversion_goal") as mock_update:
             mock_update.return_value = {"results": [{"resource_name": "test"}]}  # type: ignore
 
-            # Test with IMPORTED_LEAD / APP (v20 has no plain LEAD category)
+            # Test with IMPORTED_LEAD / APP (Note: plain LEAD category is fully supported in v24, but we test IMPORTED_LEAD/APP here for complete compatibility verification).
             await update_tool(
                 ctx=mock_context,
                 customer_id="1234567890",

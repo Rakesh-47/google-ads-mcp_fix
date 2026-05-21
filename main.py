@@ -161,7 +161,7 @@ from src.servers.shared_criterion_server import shared_criterion_server
 from src.servers.shared_set_server import shared_set_server
 from src.servers.smart_campaign_server import smart_campaign_server
 
-# from src.sdk_servers.extension_feed_item_server import extension_feed_item_sdk_server  # Not available in v20
+# from src.sdk_servers.extension_feed_item_server import extension_feed_item_sdk_server  # Not implemented
 from src.servers.user_data_server import user_data_server
 from src.servers.user_list_server import user_list_server
 from src.utils import get_logger, load_dotenv

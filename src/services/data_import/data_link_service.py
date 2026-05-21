@@ -7,8 +7,7 @@ from google.ads.googleads.v24.services.services.data_link_service import (
     DataLinkServiceClient,
 )
 
-# Note: Data link types not fully available in v20 - simplified implementation
-# Note: Common data link types may not be available in v20
+# Note: Google Ads v24 Data Links manage integrations like Webapp, Advertiser, or Third-Party Analytics. Full link setup varies by type (e.g., youtube_video_link vs. third_party_app_analytics_link).
 from google.ads.googleads.errors import GoogleAdsException
 
 from src.sdk_client import get_sdk_client
@@ -43,7 +42,7 @@ class DataLinkService:
         data_link_type: str,
         external_id: str,
     ) -> Dict[str, Any]:
-        """Create a basic data link (simplified due to v20 limitations).
+        """Create a basic data link (simplified implementation).
 
         Args:
             ctx: FastMCP context
@@ -58,7 +57,7 @@ class DataLinkService:
         try:
             customer_id = format_customer_id(customer_id)
 
-            # Note: Complex data link types not available in v20 - simplified implementation
+            # Note: Full v24/v24.1 DataLink configurations require setting type-specific link details (e.g. third_party_app_analytics_link, or youtube_video containing the new v24.1 channel_id) based on the integration target.
             await ctx.log(
                 level="info",
                 message=f"Data link creation requested: {data_link_name} ({data_link_type}) for {external_id}",
@@ -69,8 +68,8 @@ class DataLinkService:
                 "data_link_name": data_link_name,
                 "type": data_link_type,
                 "external_id": external_id,
-                "status": "Request processed - full data link creation requires additional v24 type support",
-                "note": "This is a simplified implementation due to v20 API limitations",
+                "status": "Request processed - full data link creation requires additional v24/v24.1 type support",
+                "note": "This is a simplified implementation. Initializing specific third-party integrations (e.g., Third-Party App Analytics, YouTube) requires setting distinct sub-attributes in the DataLink protobuf resource (such as the new v24.1 channel_id within the youtube_video field exposing the associated YouTube channel ID).",
             }
 
         except GoogleAdsException as e:
@@ -87,7 +86,7 @@ class DataLinkService:
         ctx: Context,
         customer_id: str,
     ) -> List[Dict[str, Any]]:
-        """List data links for a customer (simplified due to v20 limitations).
+        """List data links for a customer (simplified implementation).
 
         Args:
             ctx: FastMCP context
@@ -99,7 +98,7 @@ class DataLinkService:
         try:
             customer_id = format_customer_id(customer_id)
 
-            # Note: Complex data link queries not fully supported in v20
+            # Note: Listing/querying complex data links is supported via GoogleAdsService search queries using v24 GAQL for data_link fields.
             await ctx.log(
                 level="info",
                 message=f"Data link list requested for customer {customer_id}",
@@ -109,7 +108,7 @@ class DataLinkService:
                 {
                     "customer_id": customer_id,
                     "status": "Request processed - data link listing requires additional v24 type support",
-                    "note": "This is a simplified implementation due to v20 API limitations",
+                    "note": "This is a simplified listing. Custom searches on the data_link resource should be executed using the search/query tools to retrieve full integration status.",
                 }
             ]
 
@@ -136,7 +135,7 @@ def create_data_link_tools(
         data_link_type: str,
         external_id: str,
     ) -> Dict[str, Any]:
-        """Create a basic data link (simplified due to v20 limitations).
+        """Create a basic data link (simplified implementation).
 
         Args:
             customer_id: The customer ID
@@ -159,7 +158,7 @@ def create_data_link_tools(
         ctx: Context,
         customer_id: str,
     ) -> List[Dict[str, Any]]:
-        """List data links for a customer (simplified due to v20 limitations).
+        """List data links for a customer (simplified implementation).
 
         Args:
             customer_id: The customer ID
