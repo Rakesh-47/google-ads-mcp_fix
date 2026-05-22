@@ -139,8 +139,9 @@ class CampaignService:
         target_roas: Optional[float] = None,
         max_conversion_value_target_roas: Optional[float] = None,
         target_spend_cpc_bid_ceiling_micros: Optional[int] = None,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
+        start_date_time: Optional[str] = None,
+        end_date_time: Optional[str] = None,
+        contains_eu_political_advertising: str = "UNKNOWN",
     ) -> Dict[str, Any]:
         """Create a new campaign.
 
@@ -160,8 +161,9 @@ class CampaignService:
             target_roas: Target ROAS value (for TARGET_ROAS)
             max_conversion_value_target_roas: Target ROAS (for MAXIMIZE_CONVERSION_VALUE)
             target_spend_cpc_bid_ceiling_micros: CPC ceiling (for TARGET_SPEND)
-            start_date: Campaign start date (YYYY-MM-DD)
-            end_date: Campaign end date (YYYY-MM-DD)
+            start_date_time: Campaign start date (YYYY-MM-DD HH:MM:SS)
+            end_date_time: Campaign end date (YYYY-MM-DD HH:MM:SS)
+            contains_eu_political_advertising: Required in v24. Values: UNKNOWN, CONTAINS_EU_POLITICAL_ADVERTISING, DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING
 
         Returns:
             Created campaign details
@@ -178,7 +180,12 @@ class CampaignService:
             if advertising_channel_sub_type is not None:
                 campaign.advertising_channel_sub_type = advertising_channel_sub_type
 
-            campaign.contains_eu_political_advertising = EuPoliticalAdvertisingStatusEnum.EuPoliticalAdvertisingStatus.DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING
+            eu_enum = resolve_enum(
+                EuPoliticalAdvertisingStatusEnum.EuPoliticalAdvertisingStatus,
+                contains_eu_political_advertising,
+                "contains_eu_political_advertising"
+            )
+            campaign.contains_eu_political_advertising = eu_enum
             campaign.experiment_type = (
                 CampaignExperimentTypeEnum.CampaignExperimentType.BASE
             )
@@ -203,10 +210,10 @@ class CampaignService:
                 target_spend_cpc_bid_ceiling_micros=target_spend_cpc_bid_ceiling_micros,
             )
 
-            if start_date:
-                campaign.start_date_time = start_date if " " in start_date else f"{start_date} 00:00:00"
-            if end_date:
-                campaign.end_date_time = end_date if " " in end_date else f"{end_date} 23:59:59"
+            if start_date_time:
+                campaign.start_date_time = start_date_time if " " in start_date_time else f"{start_date_time} 00:00:00"
+            if end_date_time:
+                campaign.end_date_time = end_date_time if " " in end_date_time else f"{end_date_time} 23:59:59"
 
             operation = CampaignOperation()
             operation.create = campaign
@@ -242,8 +249,8 @@ class CampaignService:
         target_roas: Optional[float] = None,
         max_conversion_value_target_roas: Optional[float] = None,
         target_spend_cpc_bid_ceiling_micros: Optional[int] = None,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
+        start_date_time: Optional[str] = None,
+        end_date_time: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Update an existing campaign.
 
@@ -259,8 +266,8 @@ class CampaignService:
             target_roas: Target ROAS value
             max_conversion_value_target_roas: Target ROAS for MaxConvValue
             target_spend_cpc_bid_ceiling_micros: CPC ceiling for TARGET_SPEND
-            start_date: New start date (YYYY-MM-DD)
-            end_date: New end date (YYYY-MM-DD)
+            start_date_time: New start date (YYYY-MM-DD HH:MM:SS)
+            end_date_time: New end date (YYYY-MM-DD HH:MM:SS)
 
         Returns:
             Updated campaign details
@@ -282,12 +289,12 @@ class CampaignService:
                 campaign.status = status
                 update_mask_fields.append("status")
 
-            if start_date is not None:
-                campaign.start_date_time = start_date if " " in start_date else f"{start_date} 00:00:00"
+            if start_date_time is not None:
+                campaign.start_date_time = start_date_time if " " in start_date_time else f"{start_date_time} 00:00:00"
                 update_mask_fields.append("start_date_time")
 
-            if end_date is not None:
-                campaign.end_date_time = end_date if " " in end_date else f"{end_date} 23:59:59"
+            if end_date_time is not None:
+                campaign.end_date_time = end_date_time if " " in end_date_time else f"{end_date_time} 23:59:59"
                 update_mask_fields.append("end_date_time")
 
             if bidding_strategy_type is not None:
@@ -368,8 +375,9 @@ def create_campaign_tools(
         target_roas: Optional[float] = None,
         max_conversion_value_target_roas: Optional[float] = None,
         target_spend_cpc_bid_ceiling_micros: Optional[int] = None,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
+        start_date_time: Optional[str] = None,
+        end_date_time: Optional[str] = None,
+        contains_eu_political_advertising: str = "UNKNOWN",
     ) -> Dict[str, Any]:
         """Create a new campaign. Supports Search, Display, Shopping, Video, and Performance Max.
 
@@ -389,8 +397,9 @@ def create_campaign_tools(
             target_roas: Target ROAS as float (for TARGET_ROAS, e.g. 4.0 = 400%)
             max_conversion_value_target_roas: Target ROAS for MAXIMIZE_CONVERSION_VALUE
             target_spend_cpc_bid_ceiling_micros: Max CPC ceiling in micros (for TARGET_SPEND)
-            start_date: Campaign start date (YYYY-MM-DD)
-            end_date: Campaign end date (YYYY-MM-DD)
+            start_date_time: Campaign start date (YYYY-MM-DD HH:MM:SS)
+            end_date_time: Campaign end date (YYYY-MM-DD HH:MM:SS)
+            contains_eu_political_advertising: Required in v24. Values: UNKNOWN, CONTAINS_EU_POLITICAL_ADVERTISING, DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING
 
         Returns:
             Created campaign details with resource_name and campaign_id
@@ -424,8 +433,9 @@ def create_campaign_tools(
             target_roas=target_roas,
             max_conversion_value_target_roas=max_conversion_value_target_roas,
             target_spend_cpc_bid_ceiling_micros=target_spend_cpc_bid_ceiling_micros,
-            start_date=start_date,
-            end_date=end_date,
+            start_date_time=start_date_time,
+            end_date_time=end_date_time,
+            contains_eu_political_advertising=contains_eu_political_advertising,
         )
 
     async def update_campaign(
@@ -440,8 +450,8 @@ def create_campaign_tools(
         target_roas: Optional[float] = None,
         max_conversion_value_target_roas: Optional[float] = None,
         target_spend_cpc_bid_ceiling_micros: Optional[int] = None,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
+        start_date_time: Optional[str] = None,
+        end_date_time: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Update an existing campaign.
 
@@ -458,8 +468,8 @@ def create_campaign_tools(
             target_roas: Target ROAS as float
             max_conversion_value_target_roas: Target ROAS for MAXIMIZE_CONVERSION_VALUE
             target_spend_cpc_bid_ceiling_micros: Max CPC ceiling in micros
-            start_date: New start date (YYYY-MM-DD)
-            end_date: New end date (YYYY-MM-DD)
+            start_date_time: New start date (YYYY-MM-DD HH:MM:SS)
+            end_date_time: New end date (YYYY-MM-DD HH:MM:SS)
 
         Returns:
             Updated campaign details
@@ -482,8 +492,8 @@ def create_campaign_tools(
             target_roas=target_roas,
             max_conversion_value_target_roas=max_conversion_value_target_roas,
             target_spend_cpc_bid_ceiling_micros=target_spend_cpc_bid_ceiling_micros,
-            start_date=start_date,
-            end_date=end_date,
+            start_date_time=start_date_time,
+            end_date_time=end_date_time,
         )
 
     tools.extend([create_campaign, update_campaign])

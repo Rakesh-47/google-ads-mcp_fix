@@ -114,7 +114,7 @@ class GoogleAdsFieldService:
             conditions = []
 
             if query:
-                conditions.append(f"({query})")
+                conditions.append(query)
 
             if category_filter:
                 conditions.append(f"category = '{category_filter.name}'")
@@ -236,15 +236,18 @@ class GoogleAdsFieldService:
                 "issues": [],
             }
 
-            # Check each field
+            # Check each field and fetch metadata
+            fields_meta = {}
             for field_name in field_names:
                 try:
                     field_metadata = await self.get_field_metadata(ctx, field_name)
+                    fields_meta[field_name] = field_metadata
                     validation_result["fields"][field_name] = {
                         "valid": True,
                         "selectable": field_metadata.get("selectable", False),
-                        "data_type": field_metadata.get("dataType", "UNKNOWN"),
+                        "data_type": field_metadata.get("data_type", "UNKNOWN"),
                         "category": field_metadata.get("category", "UNKNOWN"),
+                        "selectable_with": field_metadata.get("selectable_with", []),
                     }
 
                     if not field_metadata.get("selectable", False):
@@ -262,6 +265,21 @@ class GoogleAdsFieldService:
                     validation_result["issues"].append(
                         f"Field '{field_name}' is not a valid field"
                     )
+
+            # Perform resource compatibility check
+            if validation_result["all_compatible"]:
+                core_res = resource_name.replace("googleAdsFields/", "").lower()
+                for f_name, meta in fields_meta.items():
+                    if f_name.lower().startswith(core_res + "."):
+                        continue
+                    if "selectable_with" in meta or "attribute_resources" in meta:
+                        sel_with = [s.lower() for s in meta.get("selectable_with", [])]
+                        attr_res = [r.replace("googleAdsFields/", "").lower() for r in meta.get("attribute_resources", [])]
+                        if core_res not in sel_with and core_res not in attr_res:
+                            validation_result["all_compatible"] = False
+                            validation_result["issues"].append(
+                                f"Field '{f_name}' is not compatible with resource '{resource_name}'"
+                            )
 
             await ctx.log(
                 level="info",

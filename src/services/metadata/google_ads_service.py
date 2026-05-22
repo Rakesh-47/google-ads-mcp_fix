@@ -81,10 +81,27 @@ class GoogleAdsService:
         try:
             customer_id = format_customer_id(customer_id)
 
+            # Transparently auto-correct query if needed before execution to ensure v24 compatibility
+            corrected_query = query
+            try:
+                from src.services.metadata.gaql_validation import auto_correct_gaql_query_logic
+                correction_res = auto_correct_gaql_query_logic(query)
+                if correction_res.get("changes_made"):
+                    corrected_query = correction_res["corrected_query"]
+                    await ctx.log(
+                        level="info",
+                        message=f"Transparently auto-corrected query for v24 compliance: {', '.join(correction_res['changes_made'])}",
+                    )
+            except Exception as e:
+                await ctx.log(
+                    level="warning",
+                    message=f"Transparent query correction check bypassed: {str(e)}",
+                )
+
             # Create the request
             request = SearchGoogleAdsRequest()
             request.customer_id = customer_id
-            request.query = query
+            request.query = corrected_query
             if page_token:
                 request.page_token = page_token
             request.validate_only = validate_only
@@ -117,7 +134,7 @@ class GoogleAdsService:
                 "next_page_token": response.next_page_token,
                 "total_results_count": response.total_results_count,
                 "summary_row": summary_row,
-                "field_mask": response.field_mask.paths if response.field_mask else [],
+                "field_mask": list(response.field_mask.paths) if response.field_mask else [],
             }
 
         except GoogleAdsException as e:
@@ -152,10 +169,27 @@ class GoogleAdsService:
         try:
             customer_id = format_customer_id(customer_id)
 
+            # Transparently auto-correct query if needed before execution to ensure v24 compatibility
+            corrected_query = query
+            try:
+                from src.services.metadata.gaql_validation import auto_correct_gaql_query_logic
+                correction_res = auto_correct_gaql_query_logic(query)
+                if correction_res.get("changes_made"):
+                    corrected_query = correction_res["corrected_query"]
+                    await ctx.log(
+                        level="info",
+                        message=f"Transparently auto-corrected query for v24 compliance: {', '.join(correction_res['changes_made'])}",
+                    )
+            except Exception as e:
+                await ctx.log(
+                    level="warning",
+                    message=f"Transparent query correction check bypassed: {str(e)}",
+                )
+
             # Create the request
             request = SearchGoogleAdsStreamRequest()
             request.customer_id = customer_id
-            request.query = query
+            request.query = corrected_query
             request.summary_row_setting = summary_row_setting
 
             # Execute streaming search
@@ -393,6 +427,9 @@ def create_google_ads_tools(
 
         Returns:
             Dict with ``results`` list and optional ``partial_failure_error``
+
+        Note: Use start_date_time and end_date_time (YYYY-MM-DD HH:MM:SS) for campaigns.
+        Do not use start_date or end_date.
 
         Example -- create PMax campaign with asset group atomically:
             operations=[

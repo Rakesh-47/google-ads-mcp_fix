@@ -132,7 +132,10 @@ def format_ads_error(ex: GoogleAdsException) -> str:
     if errors is not None:
         try:
             for error in errors:
-                parts.append(error.message or "Unknown error")
+                msg = error.message or "Unknown error"
+                if "REQUESTED_DATE_GRANULARITY_NOT_SUPPORTED" in str(error):
+                    msg += " (Cannot segment data older than 37 months. Please adjust the date range and try again.)"
+                parts.append(msg)
         except TypeError:
             parts = []
 

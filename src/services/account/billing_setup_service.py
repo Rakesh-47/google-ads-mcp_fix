@@ -53,8 +53,8 @@ class BillingSetupService:
         ctx: Context,
         customer_id: str,
         payments_account_id: str,
-        start_date: str,
-        end_date: Optional[str] = None,
+        start_date_time: str,
+        end_date_time: Optional[str] = None,
         start_time_type: TimeTypeEnum.TimeType = TimeTypeEnum.TimeType.NOW,
         end_time_type: TimeTypeEnum.TimeType = TimeTypeEnum.TimeType.FOREVER,
     ) -> Dict[str, Any]:
@@ -64,8 +64,8 @@ class BillingSetupService:
             ctx: FastMCP context
             customer_id: The customer ID
             payments_account_id: The payments account ID to link
-            start_date: Start date in YYYY-MM-DD format (ignored if start_time_type is NOW)
-            end_date: End date in YYYY-MM-DD format (optional, ignored if end_time_type is FOREVER)
+            start_date_time: Start date/time in YYYY-MM-DD HH:MM:SS format (ignored if start_time_type is NOW)
+            end_date_time: End date/time in YYYY-MM-DD HH:MM:SS format (optional, ignored if end_time_type is FOREVER)
             start_time_type: Start time type enum value
             end_time_type: End time type enum value
 
@@ -87,13 +87,13 @@ class BillingSetupService:
             if start_time_type == TimeTypeEnum.TimeType.NOW:
                 billing_setup.start_time_type = start_time_type
             else:
-                billing_setup.start_date_time = start_date
+                billing_setup.start_date_time = start_date_time
 
             # Set end date/time if provided
             if end_time_type != TimeTypeEnum.TimeType.FOREVER:
                 billing_setup.end_time_type = end_time_type
-                if end_date and end_time_type != TimeTypeEnum.TimeType.NOW:
-                    billing_setup.end_date_time = end_date
+                if end_date_time and end_time_type != TimeTypeEnum.TimeType.NOW:
+                    billing_setup.end_date_time = end_date_time
 
             # Create operation
             operation = BillingSetupOperation()
@@ -323,8 +323,8 @@ def create_billing_setup_tools(
         ctx: Context,
         customer_id: str,
         payments_account_id: str,
-        start_date: str,
-        end_date: Optional[str] = None,
+        start_date_time: str,
+        end_date_time: Optional[str] = None,
         start_time_type: str = "NOW",
         end_time_type: str = "FOREVER",
     ) -> Dict[str, Any]:
@@ -333,8 +333,8 @@ def create_billing_setup_tools(
         Args:
             customer_id: The customer ID
             payments_account_id: The payments account ID to link
-            start_date: Start date in YYYY-MM-DD format (ignored if start_time_type is NOW)
-            end_date: End date in YYYY-MM-DD format (optional, ignored if end_time_type is FOREVER)
+            start_date_time: Start date/time in YYYY-MM-DD HH:MM:SS format (ignored if start_time_type is NOW)
+            end_date_time: End date/time in YYYY-MM-DD HH:MM:SS format (optional, ignored if end_time_type is FOREVER)
             start_time_type: Start time type - NOW or FOREVER
             end_time_type: End time type - FOREVER, NOW, or specific date
 
@@ -351,8 +351,8 @@ def create_billing_setup_tools(
             ctx=ctx,
             customer_id=customer_id,
             payments_account_id=payments_account_id,
-            start_date=start_date,
-            end_date=end_date,
+            start_date_time=start_date_time,
+            end_date_time=end_date_time,
             start_time_type=start_enum,
             end_time_type=end_enum,
         )

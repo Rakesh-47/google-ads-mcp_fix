@@ -104,7 +104,7 @@ async def test_create_campaign(
     )
     assert (
         op.create.contains_eu_political_advertising
-        == EuPoliticalAdvertisingStatusEnum.EuPoliticalAdvertisingStatus.DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING
+        == EuPoliticalAdvertisingStatusEnum.EuPoliticalAdvertisingStatus.UNKNOWN
     )
     # Default bidding is ManualCPC
     assert op.create.manual_cpc is not None
@@ -132,8 +132,8 @@ async def test_create_campaign_with_dates(
             budget_resource_name="customers/1234567890/campaignBudgets/987654321",
             advertising_channel_type=AdvertisingChannelTypeEnum.AdvertisingChannelType.DISPLAY,
             status=CampaignStatusEnum.CampaignStatus.ENABLED,
-            start_date="2024-03-01",
-            end_date="2024-03-31",
+            start_date_time="2024-03-01",
+            end_date_time="2024-03-31",
         )
 
     assert result == expected
@@ -362,8 +362,8 @@ async def test_update_campaign_dates_only(
             ctx=mock_ctx,
             customer_id="1234567890",
             campaign_id="111222333",
-            start_date="2024-04-01",
-            end_date="2024-04-30",
+            start_date_time="2024-04-01",
+            end_date_time="2024-04-30",
         )
 
     assert result == expected

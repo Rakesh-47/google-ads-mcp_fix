@@ -149,102 +149,7 @@ class AdService:
             await ctx.log(level="error", message=error_msg)
             raise Exception(error_msg) from e
 
-    async def create_expanded_text_ad(
-        self,
-        ctx: Context,
-        customer_id: str,
-        ad_group_id: str,
-        headline1: str,
-        headline2: str,
-        headline3: Optional[str],
-        description1: str,
-        description2: Optional[str],
-        final_urls: List[str],
-        path1: Optional[str] = None,
-        path2: Optional[str] = None,
-        status: AdGroupAdStatusEnum.AdGroupAdStatus = AdGroupAdStatusEnum.AdGroupAdStatus.PAUSED,
-    ) -> Dict[str, Any]:
-        """Create an expanded text ad.
 
-        Args:
-            ctx: FastMCP context
-            customer_id: The customer ID
-            ad_group_id: The ad group ID
-            headline1: First headline (required)
-            headline2: Second headline (required)
-            headline3: Third headline (optional)
-            description1: First description (required)
-            description2: Second description (optional)
-            final_urls: List of landing page URLs
-            path1: First path component for display URL
-            path2: Second path component for display URL
-            status: Ad status enum value
-
-        Returns:
-            Created ad details
-        """
-        try:
-            customer_id = format_customer_id(customer_id)
-            ad_group_resource_name = f"customers/{customer_id}/adGroups/{ad_group_id}"
-
-            # Create ad
-            ad = Ad()
-            ad.final_urls.extend(final_urls)
-
-            # Create expanded text ad info
-            expanded_text_ad = ExpandedTextAdInfo()
-
-            # Set display URL paths on the ad info
-            if path1:
-                expanded_text_ad.path1 = path1
-            if path2:
-                expanded_text_ad.path2 = path2
-            expanded_text_ad.headline_part1 = headline1
-            expanded_text_ad.headline_part2 = headline2
-            if headline3:
-                expanded_text_ad.headline_part3 = headline3
-
-            expanded_text_ad.description = description1
-            if description2:
-                expanded_text_ad.description2 = description2
-
-            ad.expanded_text_ad = expanded_text_ad
-
-            # Create ad group ad
-            ad_group_ad = AdGroupAd()
-            ad_group_ad.ad_group = ad_group_resource_name
-            ad_group_ad.ad = ad
-            ad_group_ad.status = status
-
-            # Create operation
-            operation = AdGroupAdOperation()
-            operation.create = ad_group_ad
-
-            # Create request
-            request = MutateAdGroupAdsRequest()
-            request.customer_id = customer_id
-            request.operations = [operation]
-
-            # Make the API call
-            response: MutateAdGroupAdsResponse = self.client.mutate_ad_group_ads(
-                request=request
-            )
-
-            await ctx.log(
-                level="info",
-                message=f"Created expanded text ad in ad group {ad_group_id}",
-            )
-
-            return serialize_proto_message(response)
-
-        except GoogleAdsException as e:
-            error_msg = format_ads_error(e)
-            await ctx.log(level="error", message=error_msg)
-            raise Exception(error_msg) from e
-        except Exception as e:
-            error_msg = f"Failed to create expanded text ad: {str(e)}"
-            await ctx.log(level="error", message=error_msg)
-            raise Exception(error_msg) from e
 
     async def update_ad_status(
         self,
@@ -356,57 +261,7 @@ def create_ad_tools(service: AdService) -> List[Callable[..., Awaitable[Any]]]:
             status=status_enum,
         )
 
-    async def create_expanded_text_ad(
-        ctx: Context,
-        customer_id: str,
-        ad_group_id: str,
-        headline1: str,
-        headline2: str,
-        headline3: Optional[str],
-        description1: str,
-        description2: Optional[str],
-        final_urls: List[str],
-        path1: Optional[str] = None,
-        path2: Optional[str] = None,
-        status: str = "PAUSED",
-    ) -> Dict[str, Any]:
-        """Create an expanded text ad.
 
-        Args:
-            customer_id: The customer ID
-            ad_group_id: The ad group ID
-            headline1: First headline (max 30 chars)
-            headline2: Second headline (max 30 chars)
-            headline3: Third headline (optional, max 30 chars)
-            description1: First description (max 90 chars)
-            description2: Second description (optional, max 90 chars)
-            final_urls: List of landing page URLs
-            path1: First path component for display URL (max 15 chars)
-            path2: Second path component for display URL (max 15 chars)
-            status: Ad status (ENABLED, PAUSED, REMOVED)
-
-        Returns:
-            Created ad details
-        """
-        # Convert string enum to proper enum type
-        status_enum = resolve_enum(
-            AdGroupAdStatusEnum.AdGroupAdStatus, status, "status"
-        )
-
-        return await service.create_expanded_text_ad(
-            ctx=ctx,
-            customer_id=customer_id,
-            ad_group_id=ad_group_id,
-            headline1=headline1,
-            headline2=headline2,
-            headline3=headline3,
-            description1=description1,
-            description2=description2,
-            final_urls=final_urls,
-            path1=path1,
-            path2=path2,
-            status=status_enum,
-        )
 
     async def update_ad_status(
         ctx: Context,
@@ -439,9 +294,7 @@ def create_ad_tools(service: AdService) -> List[Callable[..., Awaitable[Any]]]:
             status=status_enum,
         )
 
-    tools.extend(
-        [create_responsive_search_ad, create_expanded_text_ad, update_ad_status]
-    )
+    tools.extend([create_responsive_search_ad, update_ad_status])
     return tools
 
 

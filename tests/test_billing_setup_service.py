@@ -49,8 +49,8 @@ async def test_create_billing_setup(
     # Arrange
     customer_id = "1234567890"
     payments_account_id = "987654321"
-    start_date = "2024-01-01"
-    end_date = "2024-12-31"
+    start_date_time = "2024-01-01 00:00:00"
+    end_date_time = "2024-12-31 23:59:59"
     start_time_type = TimeTypeEnum.TimeType.NOW
     end_time_type = TimeTypeEnum.TimeType.FOREVER
 
@@ -77,8 +77,8 @@ async def test_create_billing_setup(
             ctx=mock_ctx,
             customer_id=customer_id,
             payments_account_id=payments_account_id,
-            start_date=start_date,
-            end_date=end_date,
+            start_date_time=start_date_time,
+            end_date_time=end_date_time,
             start_time_type=start_time_type,
             end_time_type=end_time_type,
         )
@@ -118,7 +118,7 @@ async def test_create_billing_setup_with_specific_start_date(
     # Arrange
     customer_id = "1234567890"
     payments_account_id = "987654321"
-    start_date = "2024-03-01"
+    start_date_time = "2024-03-01 00:00:00"
     start_time_type = TimeTypeEnum.TimeType.FOREVER  # Not NOW
     end_time_type = TimeTypeEnum.TimeType.FOREVER
 
@@ -145,7 +145,7 @@ async def test_create_billing_setup_with_specific_start_date(
             ctx=mock_ctx,
             customer_id=customer_id,
             payments_account_id=payments_account_id,
-            start_date=start_date,
+            start_date_time=start_date_time,
             start_time_type=start_time_type,
             end_time_type=end_time_type,
         )
@@ -157,7 +157,7 @@ async def test_create_billing_setup_with_specific_start_date(
     call_args = mock_billing_setup_client.mutate_billing_setup.call_args  # type: ignore
     request = call_args[1]["request"]
     billing_setup = request.operation.create
-    assert billing_setup.start_date_time == start_date
+    assert billing_setup.start_date_time == start_date_time
 
 
 @pytest.mark.asyncio
@@ -170,8 +170,8 @@ async def test_create_billing_setup_with_end_date(
     # Arrange
     customer_id = "1234567890"
     payments_account_id = "987654321"
-    start_date = "2024-01-01"
-    end_date = "2024-12-31"
+    start_date_time = "2024-01-01 00:00:00"
+    end_date_time = "2024-12-31 23:59:59"
     start_time_type = TimeTypeEnum.TimeType.NOW
     end_time_type = TimeTypeEnum.TimeType.NOW  # Not FOREVER
 
@@ -198,8 +198,8 @@ async def test_create_billing_setup_with_end_date(
             ctx=mock_ctx,
             customer_id=customer_id,
             payments_account_id=payments_account_id,
-            start_date=start_date,
-            end_date=end_date,
+            start_date_time=start_date_time,
+            end_date_time=end_date_time,
             start_time_type=start_time_type,
             end_time_type=end_time_type,
         )
@@ -585,7 +585,7 @@ async def test_error_handling_create_billing_setup(
     # Arrange
     customer_id = "1234567890"
     payments_account_id = "987654321"
-    start_date = "2024-01-01"
+    start_date_time = "2024-01-01 00:00:00"
 
     # Get the mocked billing setup service client and make it raise exception
     mock_billing_setup_client = billing_setup_service.client  # type: ignore
@@ -597,7 +597,7 @@ async def test_error_handling_create_billing_setup(
             ctx=mock_ctx,
             customer_id=customer_id,
             payments_account_id=payments_account_id,
-            start_date=start_date,
+            start_date_time=start_date_time,
         )
 
     assert "Failed to create billing setup" in str(exc_info.value)
