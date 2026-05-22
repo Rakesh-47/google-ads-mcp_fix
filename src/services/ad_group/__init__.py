@@ -34,10 +34,6 @@ from .ad_group_label_service import (
     AdGroupLabelService,
     register_ad_group_label_tools,
 )
-from .ad_parameter_service import (
-    AdParameterService,
-    register_ad_parameter_tools,
-)
 from .ad_group_service import (
     AdGroupService,
     register_ad_group_tools,
@@ -74,8 +70,6 @@ __all__ = [
     "register_ad_group_tools",
     "AdService",
     "register_ad_tools",
-    "AdParameterService",
-    "register_ad_parameter_tools",
     "KeywordService",
     "register_keyword_tools",
 ]

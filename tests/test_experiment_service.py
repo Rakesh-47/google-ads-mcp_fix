@@ -411,7 +411,6 @@ async def test_list_experiments(
             "description": "First experiment",
             "status": ExperimentStatusEnum.ExperimentStatus.ENABLED,
             "type": ExperimentTypeEnum.ExperimentType.SEARCH_CUSTOM,
-            "traffic_split_percent": 50,
             "start_date": "2024-01-01",
             "end_date": "2024-12-31",
         },
@@ -421,7 +420,6 @@ async def test_list_experiments(
             "description": "Second experiment",
             "status": ExperimentStatusEnum.ExperimentStatus.ENABLED,
             "type": ExperimentTypeEnum.ExperimentType.DISPLAY_CUSTOM,
-            "traffic_split_percent": 60,
             "start_date": "2024-02-01",
             "end_date": "2024-11-30",
         },
@@ -435,8 +433,6 @@ async def test_list_experiments(
         row.experiment.description = info["description"]
         row.experiment.status = info["status"]
         row.experiment.type_ = info["type"]
-        row.experiment.traffic_split_percent = info["traffic_split_percent"]
-        row.experiment.campaigns = [f"customers/{customer_id}/campaigns/{campaign_id}"]
         row.experiment.start_date = info["start_date"]
         row.experiment.end_date = info["end_date"]
         row.experiment.resource_name = (
@@ -484,15 +480,11 @@ async def test_list_experiments(
     call_args = mock_google_ads_service.search.call_args  # type: ignore
     assert call_args[1]["customer_id"] == customer_id
     query = call_args[1]["query"]
-    assert (
-        f"experiment.campaigns CONTAINS 'customers/{customer_id}/campaigns/{campaign_id}'"
-        in query
-    )
     assert f"experiment.status = '{status_filter}'" in query
     assert "FROM experiment" in query
 
     # Verify logging
-    mock_ctx.log.assert_called_once_with(  # type: ignore
+    mock_ctx.log.assert_any_call(  # type: ignore
         level="info",
         message="Found 2 experiments",
     )

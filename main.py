@@ -34,9 +34,6 @@ from src.servers.ad_group_customizer_server import (
 )
 from src.servers.ad_group_label_server import ad_group_label_server
 from src.servers.ad_group_server import ad_group_server
-from src.servers.ad_parameter_server import (
-    ad_parameter_server,
-)
 from src.servers.ad_server import ad_server
 from src.servers.asset_group_asset_server import asset_group_asset_server
 from src.servers.asset_group_server import asset_group_server
@@ -366,7 +363,6 @@ SERVER_GROUPS = {
         ("campaign_customizer", campaign_customizer_server),
         ("ad_group_customizer", ad_group_customizer_server),
         ("ag_crit_custom", ad_group_criterion_customizer_server),
-        ("ad_parameter", ad_parameter_server),
     ],
     "account": [
         ("customer_user_access", customer_user_access_server),

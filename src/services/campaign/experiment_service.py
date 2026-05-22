@@ -305,8 +305,6 @@ class ExperimentService:
                     experiment.description,
                     experiment.status,
                     experiment.type,
-                    experiment.traffic_split_percent,
-                    experiment.campaigns,
                     experiment.start_date,
                     experiment.end_date,
                     experiment.resource_name
@@ -315,8 +313,9 @@ class ExperimentService:
 
             conditions = []
             if campaign_id:
-                conditions.append(
-                    f"experiment.campaigns CONTAINS 'customers/{customer_id}/campaigns/{campaign_id}'"
+                await ctx.log(
+                    level="warning",
+                    message="campaign_id filtering is no longer supported in v24 for experiments. Ignoring filter."
                 )
             if status_filter:
                 conditions.append(f"experiment.status = '{status_filter}'")

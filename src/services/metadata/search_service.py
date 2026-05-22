@@ -71,8 +71,8 @@ class SearchService:
                     campaign.advertising_channel_type,
                     campaign.campaign_budget,
                     campaign_budget.amount_micros,
-                    campaign.start_date,
-                    campaign.end_date
+                    campaign.start_date_time,
+                    campaign.end_date_time
                 FROM campaign
             """
 

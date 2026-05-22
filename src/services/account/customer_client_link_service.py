@@ -212,7 +212,6 @@ class CustomerClientLinkService:
                     customer_client.descriptive_name,
                     customer_client.manager,
                     customer_client.test_account,
-                    customer_client.auto_tagging_enabled,
                     customer_client.id,
                     customer_client.time_zone,
                     customer_client.currency_code

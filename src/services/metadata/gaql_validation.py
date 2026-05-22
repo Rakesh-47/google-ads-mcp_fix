@@ -9,6 +9,10 @@ DEPRECATION_MAPPING = {
     "metrics.video_views": "metrics.video_trueview_views",
     "campaign.start_date": "campaign.start_date_time",
     "campaign.end_date": "campaign.end_date_time",
+    "billing_setup.start_date": "billing_setup.start_date_time",
+    "billing_setup.end_date": "billing_setup.end_date_time",
+    "account_budget_proposal.proposed_start_date": "account_budget_proposal.proposed_start_date_time",
+    "account_budget_proposal.proposed_end_date": "account_budget_proposal.proposed_end_date_time",
 }
 
 CORE_DATE_SEGMENTS = {
@@ -26,6 +30,9 @@ REMOVED_FIELDS = {
     "campaign_asset.click_type": "Field 'click_type' was removed from 'CampaignAsset' in v24.",
     "customer_asset.click_type": "Field 'click_type' was removed from 'CustomerAsset' in v24.",
     "campaign.video_brand_safety_suitability": "Field 'video_brand_safety_suitability' was removed from 'Campaign' in v24.",
+    "experiment.traffic_split_percent": "Field 'traffic_split_percent' was removed from 'experiment' in v24. Query 'experiment_arm' instead.",
+    "experiment.campaigns": "Field 'campaigns' was removed from 'experiment' in v24. Query 'experiment_arm' instead.",
+    "customer_client.auto_tagging_enabled": "Field 'auto_tagging_enabled' was removed from 'customer_client' in v24.",
 }
 
 
