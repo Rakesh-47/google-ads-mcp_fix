@@ -89,7 +89,6 @@ from src.servers.custom_audience_server import custom_audience_server
 from src.servers.custom_conversion_goal_server import (
     custom_conversion_goal_server,
 )
-from src.servers.custom_interest_server import custom_interest_server
 from src.servers.customer_asset_server import customer_asset_server
 from src.servers.customer_client_link_server import (
     customer_client_link_server,
@@ -301,7 +300,6 @@ SERVER_GROUPS = {
         ("customer_negative_criterion", customer_negative_criterion_server),
         ("geo_target", geo_target_constant_server),
         ("audience", audience_server),
-        ("custom_interest", custom_interest_server),
         ("custom_audience", custom_audience_server),
         ("user_list", user_list_server),
     ],
