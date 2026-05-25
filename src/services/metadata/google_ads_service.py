@@ -26,6 +26,7 @@ from google.ads.googleads.v24.services.types.google_ads_service import (
 )
 
 from src.sdk_client import get_sdk_client
+from src.services.metadata.gaql_validation import auto_correct_gaql_query_logic
 from src.utils import (
     format_ads_error,
     format_customer_id,
@@ -315,6 +316,12 @@ def create_google_ads_tools(
     ) -> Dict[str, Any]:
         """Execute a GAQL query with pagination support.
 
+        IMPORTANT — v24 field names:
+        - Use campaign.start_date_time / campaign.end_date_time (NOT start_date / end_date)
+        - Do NOT use campaign.video_brand_safety_suitability (removed in v24)
+        - Do NOT use campaign_asset.click_type / ad_group_asset.click_type (removed in v24)
+        - Do NOT use campaign_budget.ad_sub_network_type (removed in v24)
+
         Args:
             customer_id: The customer ID
             query: The GAQL (Google Ads Query Language) query
@@ -327,10 +334,19 @@ def create_google_ads_tools(
             Dictionary with results, next_page_token, and metadata
 
         Example queries:
-            - "SELECT campaign.id, campaign.name FROM campaign WHERE campaign.status = 'ENABLED'"
+            - "SELECT campaign.id, campaign.name, campaign.start_date_time FROM campaign WHERE campaign.status = 'ENABLED'"
             - "SELECT metrics.clicks, metrics.impressions FROM campaign WHERE segments.date DURING LAST_7_DAYS"
             - "SELECT ad_group.id, ad_group.name FROM ad_group WHERE ad_group.campaign = 'customers/123/campaigns/456'"
         """
+        # Auto-correct deprecated v20 field names before sending to API
+        correction = auto_correct_gaql_query_logic(query)
+        if correction["changes_made"]:
+            await ctx.log(
+                level="warning",
+                message=f"Auto-corrected GAQL query for v24 compatibility. Changes: {'; '.join(correction['changes_made'])}",
+            )
+            query = correction["corrected_query"]
+
         summary_row_setting = (
             SummaryRowSettingEnum.SummaryRowSetting.SUMMARY_ROW_WITH_RESULTS
             if include_summary_row
@@ -355,6 +371,12 @@ def create_google_ads_tools(
     ) -> List[Dict[str, Any]]:
         """Execute a GAQL query and stream all results.
 
+        IMPORTANT — v24 field names:
+        - Use campaign.start_date_time / campaign.end_date_time (NOT start_date / end_date)
+        - Do NOT use campaign.video_brand_safety_suitability (removed in v24)
+        - Do NOT use campaign_asset.click_type / ad_group_asset.click_type (removed in v24)
+        - Do NOT use campaign_budget.ad_sub_network_type (removed in v24)
+
         Use this for large result sets where you need all data at once.
         More efficient than pagination for large queries.
 
@@ -377,6 +399,15 @@ def create_google_ads_tools(
             if include_summary_row
             else SummaryRowSettingEnum.SummaryRowSetting.NO_SUMMARY_ROW
         )
+
+        # Auto-correct deprecated v20 field names before sending to API
+        correction = auto_correct_gaql_query_logic(query)
+        if correction["changes_made"]:
+            await ctx.log(
+                level="warning",
+                message=f"Auto-corrected GAQL query for v24 compatibility. Changes: {'; '.join(correction['changes_made'])}",
+            )
+            query = correction["corrected_query"]
 
         return await service.search_stream(
             ctx=ctx,
