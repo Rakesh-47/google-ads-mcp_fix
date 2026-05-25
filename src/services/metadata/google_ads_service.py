@@ -433,6 +433,49 @@ def create_google_ads_tools(
         Use the format ``customers/{customer_id}/{resource_type}/{negative_id}``
         where negative_id is -1, -2, -3, etc.
 
+        CRITICAL RULES:
+        1. SITELINK ASSETS -- field placement:
+           - ``final_urls`` goes on the ASSET itself (top-level), NOT inside ``sitelink_asset``.
+           - ``sitelink_asset`` only accepts: link_text, description1, description2,
+             start_date, end_date, ad_schedule_targets.
+           - CORRECT:
+               {"asset_operation": {"create": {
+                   "resource_name": "customers/123/assets/-1",
+                   "final_urls": ["https://example.com"],        <-- on Asset
+                   "sitelink_asset": {"link_text": "My Page", "description1": "Desc"}
+               }}}
+           - WRONG (causes API error):
+               {"asset_operation": {"create": {
+                   "sitelink_asset": {
+                       "final_urls": ["https://example.com"],    <-- WRONG location
+                       "link_text": "My Page"
+                   }
+               }}}
+
+        2. CAMPAIGN ASSET / AD GROUP ASSET operations -- NO resource_name:
+           - campaign_asset_operation and ad_group_asset_operation MUST NOT include a
+             ``resource_name`` field. The API auto-generates compound keys like
+             ``{campaign_id}~{asset_id}~{field_type}``.
+           - Negative temp IDs in resource_name are ONLY valid for resources that have
+             numeric IDs (campaigns, budgets, assets, ad groups, asset groups).
+           - CORRECT:
+               {"campaign_asset_operation": {"create": {
+                   "campaign": "customers/123/campaigns/456",
+                   "asset": "customers/123/assets/789",
+                   "field_type": "SITELINK"
+               }}}
+           - WRONG (causes BAD_RESOURCE_ID error):
+               {"campaign_asset_operation": {"create": {
+                   "resource_name": "customers/123/campaignAssets/-7",  <-- WRONG
+                   "campaign": "...", "asset": "...", "field_type": "SITELINK"
+               }}}
+
+        3. TEMP IDs in cross-references: When a later operation references an asset
+           created in the same batch, use the temp resource name from that asset's
+           ``resource_name`` field:
+               asset op:          "resource_name": "customers/123/assets/-1"
+               campaign_asset op: "asset": "customers/123/assets/-1"   <-- reference it
+
         Args:
             customer_id: The customer ID
             operations: List of operation dicts. Each dict must have exactly ONE
@@ -461,6 +504,30 @@ def create_google_ads_tools(
 
         Note: Use start_date_time and end_date_time (YYYY-MM-DD HH:MM:SS) for campaigns.
         Do not use start_date or end_date.
+
+        Example -- create sitelink assets and link to campaign atomically:
+            operations=[
+                {"asset_operation": {"create": {
+                    "resource_name": "customers/123/assets/-1",
+                    "final_urls": ["https://example.com/page1"],
+                    "sitelink_asset": {"link_text": "Our Product", "description1": "Best product ever"}
+                }}},
+                {"asset_operation": {"create": {
+                    "resource_name": "customers/123/assets/-2",
+                    "final_urls": ["https://example.com/about"],
+                    "sitelink_asset": {"link_text": "About Us", "description1": "Learn more"}
+                }}},
+                {"campaign_asset_operation": {"create": {
+                    "campaign": "customers/123/campaigns/456",
+                    "asset": "customers/123/assets/-1",
+                    "field_type": "SITELINK"
+                }}},
+                {"campaign_asset_operation": {"create": {
+                    "campaign": "customers/123/campaigns/456",
+                    "asset": "customers/123/assets/-2",
+                    "field_type": "SITELINK"
+                }}}
+            ]
 
         Example -- create PMax campaign with asset group atomically:
             operations=[
