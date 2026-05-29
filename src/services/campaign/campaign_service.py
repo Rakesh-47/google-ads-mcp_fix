@@ -459,7 +459,7 @@ def create_campaign_tools(
             customer_id: The customer ID
             campaign_id: The campaign ID to update
             name: New campaign name
-            status: New campaign status - ENABLED, PAUSED, REMOVED
+            status: New campaign status - ENABLED or PAUSED (DO NOT use this to delete campaigns. Use google_ads_atomic_mutate with a 'remove' operation instead).
             bidding_strategy_type: New bidding strategy - MANUAL_CPC, TARGET_CPA, TARGET_ROAS,
                 MAXIMIZE_CONVERSIONS, MAXIMIZE_CONVERSION_VALUE, TARGET_SPEND,
                 TARGET_IMPRESSION_SHARE, or PORTFOLIO

@@ -79,7 +79,7 @@ class SearchService:
             if not include_removed:
                 query += " WHERE campaign.status != 'REMOVED'"
 
-            query += f" ORDER BY campaign.id LIMIT {limit}"
+            query += f" ORDER BY campaign.id"
 
             # Create request
             request = SearchGoogleAdsRequest()
@@ -94,6 +94,8 @@ class SearchService:
             row: GoogleAdsRow
             for row in response:
                 results.append(serialize_proto_message(row))
+
+            results = results[:limit]
 
             await ctx.log(
                 level="info",
@@ -159,7 +161,7 @@ class SearchService:
             if conditions:
                 query += " WHERE " + " AND ".join(conditions)
 
-            query += f" ORDER BY ad_group.id LIMIT {limit}"
+            query += f" ORDER BY ad_group.id"
 
             # Create request
             request = SearchGoogleAdsRequest()
@@ -174,6 +176,8 @@ class SearchService:
             row: GoogleAdsRow
             for row in response:
                 results.append(serialize_proto_message(row))
+
+            results = results[:limit]
 
             await ctx.log(
                 level="info",
@@ -237,7 +241,7 @@ class SearchService:
             if ad_group_id:
                 query += f" AND ad_group.id = {ad_group_id}"
 
-            query += f" ORDER BY ad_group_criterion.criterion_id LIMIT {limit}"
+            query += f" ORDER BY ad_group_criterion.criterion_id"
 
             # Create request
             request = SearchGoogleAdsRequest()
@@ -252,6 +256,8 @@ class SearchService:
             row: GoogleAdsRow
             for row in response:
                 results.append(serialize_proto_message(row))
+
+            results = results[:limit]
 
             await ctx.log(
                 level="info",
@@ -274,7 +280,6 @@ class SearchService:
         ctx: Context,
         customer_id: str,
         query: str,
-        page_size: int = 1000,
     ) -> List[Dict[str, Any]]:
         """Execute a custom GAQL query.
 
@@ -282,7 +287,6 @@ class SearchService:
             ctx: FastMCP context
             customer_id: The customer ID
             query: The GAQL (Google Ads Query Language) query
-            page_size: Number of results per page
 
         Returns:
             List of query results as dictionaries
@@ -294,7 +298,6 @@ class SearchService:
             request = SearchGoogleAdsRequest()
             request.customer_id = customer_id
             request.query = query
-            request.page_size = page_size
 
             # Execute search
             response = self.client.search(request=request)
@@ -452,14 +455,12 @@ def create_search_tools(service: SearchService) -> List[Callable[..., Awaitable[
         ctx: Context,
         customer_id: str,
         query: str,
-        page_size: int = 1000,
     ) -> List[Dict[str, Any]]:
         """Execute a custom GAQL (Google Ads Query Language) query.
 
         Args:
             customer_id: The customer ID
             query: The GAQL query to execute
-            page_size: Number of results per page
 
         Returns:
             List of query results as dictionaries
@@ -467,12 +468,14 @@ def create_search_tools(service: SearchService) -> List[Callable[..., Awaitable[
         Example queries:
             - "SELECT campaign.id, campaign.name FROM campaign WHERE campaign.status = 'ENABLED'"
             - "SELECT metrics.clicks, metrics.impressions FROM campaign WHERE segments.date DURING LAST_7_DAYS"
+            
+        WARNING/GUARDRAIL: Do NOT include a LIMIT clause in your GAQL query.
+        The Google Ads API prohibits LIMIT clauses on search endpoints.
         """
         return await service.execute_query(
             ctx=ctx,
             customer_id=customer_id,
             query=query,
-            page_size=page_size,
         )
 
     tools.extend([search_campaigns, search_ad_groups, search_keywords, execute_query])
