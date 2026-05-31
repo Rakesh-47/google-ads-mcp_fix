@@ -82,27 +82,10 @@ class GoogleAdsService:
         try:
             customer_id = format_customer_id(customer_id)
 
-            # Transparently auto-correct query if needed before execution to ensure v24 compatibility
-            corrected_query = query
-            try:
-                from src.services.metadata.gaql_validation import auto_correct_gaql_query_logic
-                correction_res = auto_correct_gaql_query_logic(query)
-                if correction_res.get("changes_made"):
-                    corrected_query = correction_res["corrected_query"]
-                    await ctx.log(
-                        level="info",
-                        message=f"Transparently auto-corrected query for v24 compliance: {', '.join(correction_res['changes_made'])}",
-                    )
-            except Exception as e:
-                await ctx.log(
-                    level="warning",
-                    message=f"Transparent query correction check bypassed: {str(e)}",
-                )
-
             # Create the request
             request = SearchGoogleAdsRequest()
             request.customer_id = customer_id
-            request.query = corrected_query
+            request.query = query
             if page_token:
                 request.page_token = page_token
             request.validate_only = validate_only
@@ -170,27 +153,10 @@ class GoogleAdsService:
         try:
             customer_id = format_customer_id(customer_id)
 
-            # Transparently auto-correct query if needed before execution to ensure v24 compatibility
-            corrected_query = query
-            try:
-                from src.services.metadata.gaql_validation import auto_correct_gaql_query_logic
-                correction_res = auto_correct_gaql_query_logic(query)
-                if correction_res.get("changes_made"):
-                    corrected_query = correction_res["corrected_query"]
-                    await ctx.log(
-                        level="info",
-                        message=f"Transparently auto-corrected query for v24 compliance: {', '.join(correction_res['changes_made'])}",
-                    )
-            except Exception as e:
-                await ctx.log(
-                    level="warning",
-                    message=f"Transparent query correction check bypassed: {str(e)}",
-                )
-
             # Create the request
             request = SearchGoogleAdsStreamRequest()
             request.customer_id = customer_id
-            request.query = corrected_query
+            request.query = query
             request.summary_row_setting = summary_row_setting
 
             # Execute streaming search
@@ -423,141 +389,47 @@ def create_google_ads_tools(
         partial_failure: bool = False,
         validate_only: bool = False,
     ) -> Dict[str, Any]:
-        """Execute multiple heterogeneous mutate operations atomically.
+        """Execute multiple mutate operations atomically (e.g. creating full Search/PMax campaigns).
 
-        This is the key tool for PMax campaign setup: create a campaign budget,
-        campaign, asset group, and link assets to it -- all in one atomic request
-        using temporary resource names (negative IDs).
-
-        Temporary resource names let you reference not-yet-created resources.
-        Use the format ``customers/{customer_id}/{resource_type}/{negative_id}``
-        where negative_id is -1, -2, -3, etc.
-
-        CRITICAL RULES:
-        1. SITELINK ASSETS -- field placement:
-           - ``final_urls`` goes on the ASSET itself (top-level), NOT inside ``sitelink_asset``.
-           - ``sitelink_asset`` only accepts: link_text, description1, description2,
-             start_date, end_date, ad_schedule_targets.
-           - CORRECT:
-               {"asset_operation": {"create": {
-                   "resource_name": "customers/123/assets/-1",
-                   "final_urls": ["https://example.com"],        <-- on Asset
-                   "sitelink_asset": {"link_text": "My Page", "description1": "Desc"}
-               }}}
-           - WRONG (causes API error):
-               {"asset_operation": {"create": {
-                   "sitelink_asset": {
-                       "final_urls": ["https://example.com"],    <-- WRONG location
-                       "link_text": "My Page"
-                   }
-               }}}
-
-        2. CAMPAIGN ASSET / AD GROUP ASSET operations -- NO resource_name:
-           - campaign_asset_operation and ad_group_asset_operation MUST NOT include a
-             ``resource_name`` field. The API auto-generates compound keys like
-             ``{campaign_id}~{asset_id}~{field_type}``.
-           - Negative temp IDs in resource_name are ONLY valid for resources that have
-             numeric IDs (campaigns, budgets, assets, ad groups, asset groups).
-           - CORRECT:
-               {"campaign_asset_operation": {"create": {
-                   "campaign": "customers/123/campaigns/456",
-                   "asset": "customers/123/assets/789",
-                   "field_type": "SITELINK"
-               }}}
-           - WRONG (causes BAD_RESOURCE_ID error):
-               {"campaign_asset_operation": {"create": {
-                   "resource_name": "customers/123/campaignAssets/-7",  <-- WRONG
-                   "campaign": "...", "asset": "...", "field_type": "SITELINK"
-               }}}
-
-        3. TEMP IDs in cross-references: When a later operation references an asset
-           created in the same batch, use the temp resource name from that asset's
-           ``resource_name`` field:
-               asset op:          "resource_name": "customers/123/assets/-1"
-               campaign_asset op: "asset": "customers/123/assets/-1"   <-- reference it
+        CRITICAL V24 PAYLOAD RULES:
+        1. TEMP IDs: Use negative IDs (e.g., "customers/123/campaigns/-1") to link new resources together.
+        2. NO TEMP IDs FOR LINKS: NEVER provide `resource_name` when creating criteria or link resources
+           (campaign_criterion_operation, ad_group_criterion_operation, campaign_asset_operation,
+           ad_group_asset_operation). The API auto-generates these IDs.
+        3. CAMPAIGN DATES: Use `start_date_time` & `end_date_time` (format: "YYYY-MM-DD 00:00:00"). NEVER use start_date.
+        4. CAMPAIGN EU STATUS: `contains_eu_political_advertising` is REQUIRED on every campaign create.
+           Valid values: "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING", "CONTAINS_EU_POLITICAL_ADVERTISING", "UNKNOWN".
+        5. SITELINKS: `final_urls` must be placed on the outer ASSET itself, NOT inside the `sitelink_asset` dict.
+        6. UPDATE OPERATIONS: You MUST include `update_mask` with exact field paths or the change is silently ignored.
+           Format: `update_mask` must be a comma-separated string of field names, NOT a nested dict or array.
+           Example: {"ad_group_criterion_operation": {"update": {"resource_name": "...", "cpc_bid_micros": 2000000}, "update_mask": "cpc_bid_micros"}}
 
         Args:
             customer_id: The customer ID
-            operations: List of operation dicts. Each dict must have exactly ONE
-                key matching a MutateOperation field name, with a nested dict
-                containing ``create``, ``update``, or ``remove``.
-
-                Supported operation field names (most common):
-                - campaign_budget_operation
-                - campaign_operation
-                - campaign_criterion_operation
-                - asset_operation
-                - asset_group_operation
-                - asset_group_asset_operation
-                - asset_group_signal_operation
-                - ad_group_operation
-                - ad_group_ad_operation
-                - ad_group_criterion_operation
-                - ad_group_asset_operation
-                - campaign_asset_operation
-                - (and any other *_operation field on MutateOperation)
+            operations: List of MutateOperation dicts containing a `create`, `update`, or `remove` action.
             partial_failure: If true, valid operations succeed even if others fail
             validate_only: If true, only validates without executing
 
-        Returns:
-            Dict with ``results`` list and optional ``partial_failure_error``
-
-        Note: Use start_date_time and end_date_time (YYYY-MM-DD HH:MM:SS) for campaigns.
-        Do not use start_date or end_date.
-
-        Example -- create sitelink assets and link to campaign atomically:
-            operations=[
-                {"asset_operation": {"create": {
-                    "resource_name": "customers/123/assets/-1",
-                    "final_urls": ["https://example.com/page1"],
-                    "sitelink_asset": {"link_text": "Our Product", "description1": "Best product ever"}
-                }}},
-                {"asset_operation": {"create": {
-                    "resource_name": "customers/123/assets/-2",
-                    "final_urls": ["https://example.com/about"],
-                    "sitelink_asset": {"link_text": "About Us", "description1": "Learn more"}
-                }}},
-                {"campaign_asset_operation": {"create": {
-                    "campaign": "customers/123/campaigns/456",
-                    "asset": "customers/123/assets/-1",
-                    "field_type": "SITELINK"
-                }}},
-                {"campaign_asset_operation": {"create": {
-                    "campaign": "customers/123/campaigns/456",
-                    "asset": "customers/123/assets/-2",
-                    "field_type": "SITELINK"
-                }}}
-            ]
-
-        Example -- create PMax campaign with asset group atomically:
-            operations=[
-                {"campaign_budget_operation": {"create": {
-                    "resource_name": "customers/123/campaignBudgets/-1",
-                    "name": "PMax Budget",
-                    "amount_micros": 5000000
-                }}},
-                {"campaign_operation": {"create": {
-                    "resource_name": "customers/123/campaigns/-2",
-                    "name": "PMax Campaign",
-                    "campaign_budget": "customers/123/campaignBudgets/-1",
-                    "advertising_channel_type": "PERFORMANCE_MAX",
-                    "status": "PAUSED",
-                    "maximize_conversions": {}
-                }}},
-                {"asset_group_operation": {"create": {
-                    "resource_name": "customers/123/assetGroups/-3",
-                    "campaign": "customers/123/campaigns/-2",
-                    "name": "Main Asset Group",
-                    "final_urls": ["https://example.com"]
-                }}},
-                {"asset_group_asset_operation": {"create": {
-                    "asset_group": "customers/123/assetGroups/-3",
-                    "asset": "customers/123/assets/EXISTING_ASSET_ID",
-                    "field_type": "HEADLINE"
-                }}}
-            ]
+        Example — create a Search campaign with ad group, keyword, and RSA:
+        [
+            {"campaign_budget_operation": {"create": {"resource_name": "customers/123/campaignBudgets/-1", "name": "My Budget", "amount_micros": 10000000}}},
+            {"campaign_operation": {"create": {"resource_name": "customers/123/campaigns/-2", "name": "My Campaign", "campaign_budget": "customers/123/campaignBudgets/-1", "advertising_channel_type": "SEARCH", "status": "PAUSED", "manual_cpc": {}, "contains_eu_political_advertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING"}}},
+            {"campaign_criterion_operation": {"create": {"campaign": "customers/123/campaigns/-2", "location": {"geo_target_constant": "geoTargetConstants/2840"}}}},
+            {"campaign_criterion_operation": {"create": {"campaign": "customers/123/campaigns/-2", "language": {"language_constant": "languageConstants/1000"}}}},
+            {"ad_group_operation": {"create": {"resource_name": "customers/123/adGroups/-3", "campaign": "customers/123/campaigns/-2", "name": "My Ad Group", "status": "ENABLED"}}},
+            {"ad_group_criterion_operation": {"create": {"ad_group": "customers/123/adGroups/-3", "status": "ENABLED", "keyword": {"text": "my keyword", "match_type": "EXACT"}}}},
+            {"ad_group_ad_operation": {"create": {"ad_group": "customers/123/adGroups/-3", "status": "PAUSED", "ad": {"responsive_search_ad": {"headlines": [{"text": "Headline 1"}, {"text": "Headline 2"}, {"text": "Headline 3"}], "descriptions": [{"text": "Description 1"}, {"text": "Description 2"}]}, "final_urls": ["https://example.com"]}}}}
+        ]
         """
         from google.protobuf.json_format import ParseDict
+
+        # Safety net: if LLM omits contains_eu_political_advertising on a campaign create,
+        # default to DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING to prevent "required field not present" crash.
+        for op_dict in operations:
+            campaign_op = op_dict.get("campaign_operation", {})
+            create = campaign_op.get("create", {})
+            if create and "contains_eu_political_advertising" not in create:
+                create["contains_eu_political_advertising"] = "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING"
 
         mutate_ops: list[MutateOperation] = []
         for op_dict in operations:

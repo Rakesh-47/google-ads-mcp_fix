@@ -62,7 +62,7 @@ class SearchService:
         try:
             customer_id = format_customer_id(customer_id)
 
-            # Build query
+            # Build query — LIMIT is in the GAQL so the API only sends what we need
             query = """
                 SELECT
                     campaign.id,
@@ -79,7 +79,7 @@ class SearchService:
             if not include_removed:
                 query += " WHERE campaign.status != 'REMOVED'"
 
-            query += f" ORDER BY campaign.id"
+            query += f" ORDER BY campaign.id LIMIT {limit}"
 
             # Create request
             request = SearchGoogleAdsRequest()
@@ -94,8 +94,6 @@ class SearchService:
             row: GoogleAdsRow
             for row in response:
                 results.append(serialize_proto_message(row))
-
-            results = results[:limit]
 
             await ctx.log(
                 level="info",
@@ -161,7 +159,7 @@ class SearchService:
             if conditions:
                 query += " WHERE " + " AND ".join(conditions)
 
-            query += f" ORDER BY ad_group.id"
+            query += f" ORDER BY ad_group.id LIMIT {limit}"
 
             # Create request
             request = SearchGoogleAdsRequest()
@@ -176,8 +174,6 @@ class SearchService:
             row: GoogleAdsRow
             for row in response:
                 results.append(serialize_proto_message(row))
-
-            results = results[:limit]
 
             await ctx.log(
                 level="info",
@@ -241,7 +237,7 @@ class SearchService:
             if ad_group_id:
                 query += f" AND ad_group.id = {ad_group_id}"
 
-            query += f" ORDER BY ad_group_criterion.criterion_id"
+            query += f" ORDER BY ad_group_criterion.criterion_id LIMIT {limit}"
 
             # Create request
             request = SearchGoogleAdsRequest()
@@ -256,8 +252,6 @@ class SearchService:
             row: GoogleAdsRow
             for row in response:
                 results.append(serialize_proto_message(row))
-
-            results = results[:limit]
 
             await ctx.log(
                 level="info",
@@ -466,11 +460,8 @@ def create_search_tools(service: SearchService) -> List[Callable[..., Awaitable[
             List of query results as dictionaries
 
         Example queries:
-            - "SELECT campaign.id, campaign.name FROM campaign WHERE campaign.status = 'ENABLED'"
+            - "SELECT campaign.id, campaign.name FROM campaign WHERE campaign.status = 'ENABLED' LIMIT 50"
             - "SELECT metrics.clicks, metrics.impressions FROM campaign WHERE segments.date DURING LAST_7_DAYS"
-            
-        WARNING/GUARDRAIL: Do NOT include a LIMIT clause in your GAQL query.
-        The Google Ads API prohibits LIMIT clauses on search endpoints.
         """
         return await service.execute_query(
             ctx=ctx,

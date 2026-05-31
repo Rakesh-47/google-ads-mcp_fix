@@ -7,8 +7,9 @@ DEPRECATION_MAPPING = {
     "metrics.average_cpv": "metrics.trueview_average_cpv",
     "metrics.video_view_rate": "metrics.video_trueview_view_rate",
     "metrics.video_views": "metrics.video_trueview_views",
-    "campaign.start_date": "campaign.start_date_time",
-    "campaign.end_date": "campaign.end_date_time",
+    # NOTE: campaign.start_date and campaign.end_date are intentionally NOT here.
+    # They take YYYY-MM-DD, while start_date_time takes YYYY-MM-DD HH:MM:SS.
+    # They are different fields — auto-replacing them would corrupt query values.
     "billing_setup.start_date": "billing_setup.start_date_time",
     "billing_setup.end_date": "billing_setup.end_date_time",
     "account_budget_proposal.proposed_start_date": "account_budget_proposal.proposed_start_date_time",
